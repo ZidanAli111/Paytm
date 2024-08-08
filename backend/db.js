@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { string } = require('zod');
 
-mongoose.connect("enter you mongo db url");
+mongoose.connect("enter your mongo db url");
 
 const userSchema = mongoose.Schema({
     username: {
