@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { string } = require('zod');
 
-mongoose.connect("mongodb+srv://zidan:Shalinium@cluster0.ss5ig58.mongodb.net/paytm");
+mongoose.connect("add your database url here");
 
 const userSchema = mongoose.Schema({
     username: {
