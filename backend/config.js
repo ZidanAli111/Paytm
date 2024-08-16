@@ -1,3 +1,4 @@
-const JWT_SECRET = "Shalinium"
-
-module.exports = JWT_SECRET
+//backend/config.js
+module.exports = {
+    JWT_SECRET: "Shalinium"
+}

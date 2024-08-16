@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
-const { string } = require('zod');
 
 mongoose.connect("mongodb+srv://zidan:Shalinium@cluster0.ss5ig58.mongodb.net/paytm");
 
-const userSchema = mongoose.Schema({
+// Create a Schema for Users
+const userSchema = new mongoose.Schema({
     username: {
-        type: string,
+        type: String,
         required: true,
         unique: true,
         trim: true,
@@ -14,27 +14,40 @@ const userSchema = mongoose.Schema({
         maxLength: 30
     },
     password: {
-        type: string,
+        type: String,
         required: true,
         minLength: 6
     },
     firstName: {
-        type: string,
+        type: String,
         required: true,
         trim: true,
         maxLength: 50
     },
     lastName: {
-        type: string,
+        type: String,
         required: true,
         trim: true,
         maxLength: 50
     }
-})
+});
 
-const User = mongoose.model("User", userSchema);
+const accountSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId, // Reference to User model
+        ref: 'User',
+        required: true
+    },
+    balance: {
+        type: Number,
+        required: true
+    }
+});
+
+const Account = mongoose.model('Account', accountSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = {
-    User
-}
-
+    User,
+    Account
+};
