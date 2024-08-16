@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-mongoose.connect("mongodb+srv://zidan:Shalinium@cluster0.ss5ig58.mongodb.net/paytm");
+mongoose.connect("add your database url here");
 
 // Create a Schema for Users
 const userSchema = new mongoose.Schema({
