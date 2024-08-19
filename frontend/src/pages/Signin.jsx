@@ -3,6 +3,8 @@ import { SubHeading } from '../components/SubHeading'
 import { InputBox } from '../components/InputBox'
 import { Button } from '../components/Button'
 import { BottomWarning } from '../components/BottomWarning'
+import axios from 'axios'
+
 export const Signin = () => {
 
     return (
@@ -15,12 +17,21 @@ export const Signin = () => {
                     <InputBox placeholder={"1234"} label={"Password"} />
                     <div className='pt-4'>
                         <Button label={"Sign in"} onClick={async () => {
-                            const response = await axios.post("http://localhost:3000/api/v1/user/signin", {
-                                username,
-                                password
-                            });
-                            localStorage.setItem("token", response.data.token)
-                            navigate("/dashboard")
+                            const getToken = () => localStorage.getItem("token");
+                            const getAuthorization = "Bearer " + getToken;
+                            const response = await axios.post(
+                                "http://localhost:3000/api/v1/user/signin",
+                                {
+                                    username,
+                                    password,
+                                },
+                                {
+                                    headers: {
+                                        "X-Custom-Header": "value",
+                                        Authorization: getAuthorization,
+                                    },
+                                });
+                            navigate("/dashboard");
                         }}
                         />
                         <BottomWarning label={"Don't have an account?"} buttonText={"Sign Up"} to={"/signup"} />
