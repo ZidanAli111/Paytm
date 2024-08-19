@@ -25,7 +25,7 @@ export const Users = () => {
             </input>
         </div>
         <div>
-            {users.map(user => <User user={user} />)}
+            {users.map((user, index) => (<User user={user} key={index} />))}
         </div>
     </>
 }
