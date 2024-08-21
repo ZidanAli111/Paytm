@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
+const bycrypt = require("bvrypt");
 
-mongoose.connect("mongodb+srv://zidan:Shalinium@cluster0.ss5ig58.mongodb.net/paytm");
+try {
+    async () => await mongoose.connect("mongodb+srv://zidan:Shalinium@cluster0.ss5ig58.mongodb.net/paytm");
+} catch (err) {
+    console.log(err);
+}
+
+
+
 
 // Create a Schema for Users
 const userSchema = new mongoose.Schema({
@@ -31,6 +39,23 @@ const userSchema = new mongoose.Schema({
         maxLength: 50
     }
 });
+
+
+UserSchema.methods.createHash = async (plainTextPassword) => {
+    // Hashing user's salt and password with 12 iterations,
+    const saltRounds = 12;
+    // First method to generate a salt and then create hash
+    const salt = await bycrypt.genSalt(saltRounds);
+    //generates the hashPassword
+    return await bycrypt.hash(plainTextPassword, salt);
+};
+
+//For validation, get the password from DB (this.password --> hashPassword) and compare it to the input Password provided by the client
+//note: we dont implement this method
+UserSchema.methods.validatePassword = async (candidatePassword) => {
+    return await bycrypt.compare(candidatePassword, this.password);
+};
+
 
 const accountSchema = new mongoose.Schema({
     userId: {

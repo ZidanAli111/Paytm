@@ -7,25 +7,30 @@ const { default: mongoose } = require('mongoose');
 const router = express.Router();
 
 router.get("/balance", authMiddleware, async (req, res) => {
-    const account = await Account.findOne({
-        userId: req.userId
-    });
+    try {
+        const account = await Account.findOne({ userId: req.userId });
 
-    res.json({
-        balance: account.balance
-    })
+        if (!account) {
+            return res.status(404).json({ error: "Account not found" });
+        }
+        res.json({ balance: account.balance });
+
+    } catch (error) {
+        console.error("Error retrieving account balance:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
 });
 
 router.post("/transfer", authMiddleware, async (req, res) => {
     const session = await mongoose.startSession();
 
     session.startTransaction();
-    const { amount, to } = req.body;
+    const { to, amount } = req.body;
 
     // Fetch the accounts within the transaction
-    const account = await Account.findOne({ userId: req.userId }).session(session);
+    const fromAccount = await Account.findOne({ userId: req.userId }).session(session);
 
-    if (!account || account.balance < amount) {
+    if (!fromAccount || fromAccount.balance < amount) {
         await session.abortTransaction();
         return res.status(400).json({
             message: "Insufficient balance"
@@ -47,7 +52,8 @@ router.post("/transfer", authMiddleware, async (req, res) => {
 
     // Commit the transaction
     await session.commitTransaction();
-    res.json({
+
+    res.status(200).json({
         message: "Transfer successful"
     });
 });
