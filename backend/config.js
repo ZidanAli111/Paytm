@@ -1,4 +1,4 @@
 //backend/config.js
 module.exports = {
-    JWT_SECRET: "Shalinium"
+    JWT_SECRET: "enter your jwt key"
 }
