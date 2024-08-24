@@ -1,56 +1,96 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { Button } from "./Button";
+import debounce from 'lodash.debounce';
 
 export const Users = () => {
     const [users, setUsers] = useState([]);
     const [filter, setFilter] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const fetchUsers = async (filterValue) => {
+        setLoading(true);
+        try {
+            const response = await axios.get(`http://localhost:3000/api/v1/user/bulk?filter=${filterValue}`);
+            setUsers(response.data.user);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Debounce to optimize search input
+    const debouncedFetchUsers = useCallback(
+        debounce((filterValue) => {
+            fetchUsers(filterValue);
+        }, 500), []
+    );
 
     useEffect(() => {
-        axios.get("http://localhost:3000/api/v1/user/bulk?filter=" + filter)
-            .then(response => {
-                setUsers(response.data.user)
-            })
-    }, [filter])
-    return <>
-        <div className="font-bold mt-6 text-lg">
-            Users
-        </div>
-        <div className="my-2">
-            <input onChange={(e) => {
-                setFilter(e.target.value)
-            }} type="text" placeholder="Search users..." className="w-full px-2 py-1 border rounded border-slate-300">
-            </input>
-        </div>
-        <div>
-            {users.map((user, index) => (<User user={user} key={index} />))}
-        </div>
-    </>
-}
+        debouncedFetchUsers(filter);
+        return () => {
+            debouncedFetchUsers.cancel();
+        };
+    }, [filter]);
 
-function User({ user }) {
-    const navigate = useNavigate();
-
-    return <div className="flex justify-center">
-        <div className="flex">
-            <div className="rounded-full h-12 w-12 bg-slate-200 flex justify-center mt-1 mr-2">
-                <div className="flex felx-col justify-center h-full text-xl">
-                    {user.firstName[0]}
-                </div>
+    return (
+        <div className="mt-6">
+            <div className="font-bold text-lg">Users</div>
+            <div className="my-2">
+                <input
+                    onChange={(e) => setFilter(e.target.value)}
+                    type="text"
+                    placeholder="Search users..."
+                    className="w-full px-2 py-1 border rounded border-slate-300"
+                />
             </div>
-            <div className="flex flex-col justify-center h-full">
+            {loading ? (
+                <div>Loading users...</div>
+            ) : (
                 <div>
-                    {user.firstName} {user.lastName}
+                    {users.length > 0 ? (
+                        users.map((user) => <MemoizedUser user={user} key={user._id} />)
+                    ) : (
+                        <div>No users found</div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const User = ({ user }) => {
+    const navigate = useNavigate();
+    const [isSending, setIsSending] = useState(false);
+
+    const handleSendMoney = () => {
+        setIsSending(true);
+        navigate(`/send?id=${user._id}&name=${user.firstName}`);
+        setIsSending(false);
+    };
+
+    return (
+        <div className="flex justify-center my-2">
+            <div className="flex">
+                <div className="rounded-full h-12 w-12 bg-slate-200 flex justify-center items-center mt-1 mr-2">
+                    <span className="text-xl">{user.firstName[0]}</span>
+                </div>
+                <div className="flex flex-col justify-center">
+                    <div>{`${user.firstName} ${user.lastName}`}</div>
                 </div>
             </div>
+            <div className="flex flex-col justify-center ml-4">
+                <Button
+                    click={handleSendMoney}
+                    label={isSending ? "Sending..." : "Send Money"}
+                    disabled={isSending}
+                />
+            </div>
         </div>
-        <div className="flex flex-col justify-center h-full">
-            <Button click={(e) => {
-                navigate("/send?id=" + user._id + "&name=" + user.firstName);
-            }} label={"Send Money"} />
-        </div>
-    </div>
+    );
+};
 
-}
+// Memoized User component to prevent unnecessary re-renders
+const MemoizedUser = React.memo(User);
