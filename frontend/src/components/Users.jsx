@@ -9,7 +9,7 @@ export const Users = () => {
     const [filter, setFilter] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const fetchUsers = async (filterValue) => {
+    const fetchUsers = useCallback(async (filterValue) => {
         setLoading(true);
         try {
             const response = await axios.get(`http://localhost:3000/api/v1/user/bulk?filter=${filterValue}`);
@@ -19,13 +19,10 @@ export const Users = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    // Debounce to optimize search input
     const debouncedFetchUsers = useCallback(
-        debounce((filterValue) => {
-            fetchUsers(filterValue);
-        }, 500), []
+        debounce((filterValue) => fetchUsers(filterValue), 500), [fetchUsers]
     );
 
     useEffect(() => {
@@ -33,7 +30,7 @@ export const Users = () => {
         return () => {
             debouncedFetchUsers.cancel();
         };
-    }, [filter]);
+    }, [filter, debouncedFetchUsers]);
 
     return (
         <div className="mt-6">

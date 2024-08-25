@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { BottomWarning } from "../components/BottomWarning";
 import { Button } from "../components/Button";
 import { Heading } from "../components/Heading";
@@ -12,12 +12,12 @@ export const Signup = () => {
     const [lastName, setLastName] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false); // For toggling password visibility
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const handleSignup = async () => {
+    const handleSignup = useCallback(async () => {
         setLoading(true);
         setError("");
         try {
@@ -34,52 +34,50 @@ export const Signup = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [firstName, lastName, username, password, navigate]);
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword); // Toggle between showing and hiding password
-    };
+    const togglePasswordVisibility = useCallback(() => {
+        setShowPassword(prev => !prev);
+    }, []);
 
     return (
         <div className="bg-slate-300 h-screen flex justify-center">
             <div className="flex flex-col justify-center">
                 <div className="rounded-lg bg-white w-80 text-center p-2 h-max px-4">
-                    <Heading label={"Sign up"} />
-                    <SubHeading label={"Enter your information to create an account"} />
-                    <InputBox
-                        onChange={e => setFirstName(e.target.value)}
-                        value={firstName}
-                        placeholder="John"
-                        label={"First Name"}
-                    />
-                    <InputBox
-                        onChange={e => setLastName(e.target.value)}
-                        value={lastName}
-                        placeholder="Doe"
-                        label={"Last Name"}
-                    />
-                    <InputBox
-                        onChange={e => setUsername(e.target.value)}
-                        value={username}
-                        placeholder="john@gmail.com"
-                        label={"Email"}
-                    />
+                    <Heading label={"Sign Up"} />
+                    <SubHeading label={"Create a new account"} />
 
-                    {/* Password field with toggle visibility */}
+                    <InputBox
+                        placeholder={"John"}
+                        label={"First Name"}
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                    />
+                    <InputBox
+                        placeholder={"Doe"}
+                        label={"Last Name"}
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                    />
+                    <InputBox
+                        placeholder={"johndoe"}
+                        label={"Username"}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
                     <div className="relative">
                         <InputBox
-                            onChange={e => setPassword(e.target.value)}
-                            value={password}
-                            type={showPassword ? "text" : "password"}  // Toggle password visibility
-                            placeholder="******"  // Asterisk placeholders
+                            placeholder={"******"}
                             label={"Password"}
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                         />
                         <button
                             type="button"
                             className="absolute right-3 top-10"
-                            onClick={togglePasswordVisibility}
-                        >
-                            {showPassword ? "🙈" : "👁️"}  {/* Toggle icon */}
+                            onClick={togglePasswordVisibility}>
+                            {showPassword ? "👁️" : "🙈"}
                         </button>
                     </div>
 
@@ -87,12 +85,12 @@ export const Signup = () => {
 
                     <div className="pt-4">
                         <Button
+                            label={loading ? "Signing up..." : "Sign Up"}
                             click={handleSignup}
-                            label={loading ? "Signing up..." : "Sign up"}
                             disabled={loading}
                         />
+                        <BottomWarning label={"Already have an account?"} buttonText={"Sign In"} to={"/signin"} />
                     </div>
-                    <BottomWarning label={"Already have an account?"} buttonText={"Sign in"} to={"/signin"} />
                 </div>
             </div>
         </div>

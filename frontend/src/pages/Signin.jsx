@@ -1,24 +1,24 @@
-import { Heading } from '../components/Heading';
-import { SubHeading } from '../components/SubHeading';
-import { InputBox } from '../components/InputBox';
-import { Button } from '../components/Button';
-import { BottomWarning } from '../components/BottomWarning';
-import axios from 'axios';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useCallback } from "react";
+import { BottomWarning } from "../components/BottomWarning";
+import { Button } from "../components/Button";
+import { Heading } from "../components/Heading";
+import { InputBox } from "../components/InputBox";
+import { SubHeading } from "../components/SubHeading";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export const Signin = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false); // For toggling password visibility
+    const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const handleSignIn = async () => {
-        if (isSubmitting) return; // Prevent multiple submissions
-        setIsSubmitting(true); // Indicate that submission is in progress
-        setError(""); // Clear previous errors
+    const handleSignIn = useCallback(async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        setError("");
 
         try {
             const response = await axios.post("http://localhost:3000/api/v1/user/signin", {
@@ -29,16 +29,15 @@ export const Signin = () => {
             localStorage.setItem("token", response.data.token);
             navigate("/dashboard");
         } catch (error) {
-            // Handle and display error message
             setError(error.response?.data?.message || "Signin failed. Please try again.");
         } finally {
-            setIsSubmitting(false); // Reset submission state after request completes
+            setIsSubmitting(false);
         }
-    };
+    }, [email, password, isSubmitting, navigate]);
 
-    const togglePasswordVisibility = () => {
-        setShowPassword(!showPassword); // Toggle between showing and hiding password
-    };
+    const togglePasswordVisibility = useCallback(() => {
+        setShowPassword(prev => !prev);
+    }, []);
 
     return (
         <div className="bg-slate-300 h-screen flex justify-center">
@@ -47,7 +46,6 @@ export const Signin = () => {
                     <Heading label={"Sign in"} />
                     <SubHeading label={"Enter your credentials to access your account"} />
 
-                    {/* Email input */}
                     <InputBox
                         placeholder={"abc@gmail.com"}
                         label={"Email"}
@@ -55,12 +53,11 @@ export const Signin = () => {
                         onChange={(e) => setEmail(e.target.value)}
                     />
 
-                    {/* Password input with toggle visibility */}
                     <div className="relative">
                         <InputBox
                             placeholder={"******"}
                             label={"Password"}
-                            type={showPassword ? "text" : "password"} // Toggle password visibility
+                            type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
@@ -68,11 +65,11 @@ export const Signin = () => {
                             type="button"
                             className="absolute right-3 top-10"
                             onClick={togglePasswordVisibility}>
-                            {showPassword ? "🙈" : "👁️"} {/* Toggle icon */}
+                            {showPassword ? "👁️" : "🙈"}
                         </button>
                     </div>
 
-                    {error && <p className="text-red-500">{error}</p>} {/* Display error message */}
+                    {error && <p className="text-red-500">{error}</p>}
 
                     <div className="pt-4">
                         <Button

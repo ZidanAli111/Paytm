@@ -13,6 +13,8 @@ export const Dashboard = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            setError("");  // Clear previous errors before new fetch
+
             try {
                 const balanceResponse = await axios.get('http://localhost:3000/api/v1/account/balance', {
                     headers: {
@@ -40,7 +42,7 @@ export const Dashboard = () => {
         };
 
         fetchData();
-    }, [navigate,balance]);
+    }, [navigate]);
 
     return (
         <div>

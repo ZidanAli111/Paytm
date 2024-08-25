@@ -1,5 +1,5 @@
+import React, { useState, useCallback } from 'react';
 import axios from 'axios';
-import { useState } from "react";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 export const SendMoney = () => {
@@ -11,36 +11,33 @@ export const SendMoney = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
 
-    const handleTransfer = async () => {
-        // Input validation
+    const handleTransfer = useCallback(async () => {
         if (amount <= 0 || isNaN(amount)) {
             setErrorMessage("Please enter a valid amount.");
             return;
         }
 
-        setIsSubmitting(true);  // Disable multiple submissions
-        setErrorMessage('');  // Clear previous errors
+        setIsSubmitting(true);
+        setErrorMessage('');
 
         try {
             await axios.post("http://localhost:3000/api/v1/account/transfer", {
                 to: id,
-                amount: parseFloat(amount) // Convert string input to float
+                amount: parseFloat(amount)
             }, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`
                 }
             });
 
-            // Redirect after successful transfer
             navigate("/dashboard");
         } catch (error) {
-            // Handle errors such as insufficient balance, invalid account, or server errors
             const message = error.response?.data?.message || "An error occurred while processing your request.";
             setErrorMessage(message);
         } finally {
-            setIsSubmitting(false);  // Re-enable the button
+            setIsSubmitting(false);
         }
-    };
+    }, [amount, id, navigate]);
 
     return (
         <div className="flex justify-center h-screen bg-gray-100">
@@ -57,7 +54,7 @@ export const SendMoney = () => {
                             <h3 className="text-2xl font-semibold">{name}</h3>
                         </div>
                         <div className="space-y-4">
-                            {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>} {/* Error message display */}
+                            {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="amount">
                                     Amount (in Rs)
@@ -70,7 +67,7 @@ export const SendMoney = () => {
                                     id="amount"
                                     placeholder="Enter amount"
                                     min="0"
-                                    disabled={isSubmitting}  // Disable input when submitting
+                                    disabled={isSubmitting}
                                 />
                             </div>
                             <button
