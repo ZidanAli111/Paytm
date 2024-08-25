@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Appbar } from '../components/Appbar';
 import { Balance } from '../components/Balance';
 import { Users } from '../components/Users';
@@ -7,21 +7,24 @@ import { useNavigate } from 'react-router-dom';
 
 export const Dashboard = () => {
     const [balance, setBalance] = useState(null);
+    const [users, setUsers] = useState([]);
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
+            setError("");  // Clear previous errors before new fetch
+
             try {
                 const balanceResponse = await axios.get('http://localhost:3000/api/v1/account/balance', {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+                // Round the balance to two decimal places
                 const roundedBalance = balanceResponse.data.balance.toFixed(2);
                 setBalance(roundedBalance);
 
-                // Fetch users only after balance is fetched
                 const usersResponse = await axios.get('http://localhost:3000/api/v1/user/bulk', {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -47,7 +50,7 @@ export const Dashboard = () => {
             <div className='m-8'>
                 {error && <p className='text-red-500'>{error}</p>}
                 {balance !== null ? <Balance value={balance} /> : <p>Loading balance...</p>}
-                <Users />
+                <Users users={users} />
             </div>
         </div>
     );
