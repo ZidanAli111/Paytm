@@ -47,7 +47,7 @@ export const Users = () => {
                 />
             </div>
             {loading ? (
-                <div>Loading users...</div>
+                <div className="items-center">Loading users...</div>
             ) : (
                 <div>
                     {users.length > 0 ? (
