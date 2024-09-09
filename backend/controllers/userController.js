@@ -24,12 +24,12 @@ const updateBody = zod.object({
 const signup = async (req, res) => {
     const { success, error } = signupBody.safeParse(req.body);
     if (!success) {
-        return res.status(411).json({ message: 'Incorrect inputs' });
+        return res.status(400).json({ message: 'Incorrect inputs' });
     }
 
     const existingUser = await User.findOne({ username: req.body.username });
     if (existingUser) {
-        return res.status(411).json({ message: 'Email already taken' });
+        return res.status(400).json({ message: 'Email already taken' });
     }
 
     const newUser = await User.create({
@@ -46,33 +46,49 @@ const signup = async (req, res) => {
         balance: 1 + Math.random() * 10000
     });
 
-    const token = jwt.sign({ userId }, JWT_SECRET);
-    res.status(200).json({ message: 'User created successfully', token });
+    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax',
+        maxAge: 3600000 // 1 hour
+    });
+
+    res.status(200).json({ message: 'User created successfully' });
 };
 
 const signin = async (req, res) => {
     const { success } = signinBody.safeParse(req.body);
     if (!success) {
-        return res.status(411).json({ message: 'Incorrect inputs' });
+        return res.status(400).json({ message: 'Incorrect inputs' });
     }
 
     const existingUser = await User.findOne({ username: req.body.username });
     if (!existingUser || !(await existingUser.validatePassword(req.body.password))) {
-        return res.status(411).json({ message: 'Error while logging in' });
+        return res.status(400).json({ message: 'Error while logging in' });
     }
 
-    const token = jwt.sign({ userId: existingUser._id }, JWT_SECRET);
-    res.json({ msg: 'User logged in successfully', token });
+    const token = jwt.sign({ userId: existingUser._id }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Lax',
+        maxAge: 3600000 // 1 hour
+    });
+
+    res.json({ message: 'User logged in successfully' });
 };
 
 const updateUser = async (req, res) => {
     const { success } = updateBody.safeParse(req.body);
     if (!success) {
-        return res.status(411).json({ message: 'Error while updating information' });
+        return res.status(400).json({ message: 'Error while updating information' });
     }
 
     const updatedBody = await User.updateOne({ _id: req.userId }, req.body);
-    return res.json({ message: 'Updated successfully ' + updatedBody });
+    return res.json({ message: 'Updated successfully', updatedBody });
 };
 
 const getUsers = async (req, res) => {
@@ -80,13 +96,13 @@ const getUsers = async (req, res) => {
 
     const users = await User.find({
         $or: [
-            { firstName: { "$regex": filter } },
-            { lastName: { "$regex": filter } }
+            { firstName: { "$regex": filter, "$options": "i" } },
+            { lastName: { "$regex": filter, "$options": "i" } }
         ]
     });
 
     res.json({
-        user: users.map(user => ({
+        users: users.map(user => ({
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
@@ -95,9 +111,15 @@ const getUsers = async (req, res) => {
     });
 };
 
+const logout = (req, res) => {
+    res.clearCookie('authToken');
+    res.json({ message: 'Logged out successfully' });
+};
+
 module.exports = {
     signup,
     signin,
     updateUser,
-    getUsers
+    getUsers,
+    logout
 };

@@ -4,7 +4,8 @@ const accountRoutes = require('./accountRoutes');
 
 const router = express.Router();
 
-router.use('/user', userRoutes);
-router.use('/account', accountRoutes);
+// Use the imported route modules
+router.use('/users', userRoutes);
+router.use('/accounts', accountRoutes);
 
 module.exports = router;
